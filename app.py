@@ -7,7 +7,11 @@ import json, requests
 from itertools import compress
 
 app = Flask(__name__)
-port = '5000'
+
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('index.html') # use methods = GET
+
 
 @app.route('/apero', methods=['POST'])
 def apero():
@@ -19,28 +23,40 @@ def apero():
     wine_sweetness = data["conversation"]["memory"]["wine_sweetness"]["raw"]
     wine_effervescence = data["conversation"]["memory"]["wine_effervescence"]["raw"]
 
-    # wine_color = data["conversation"]["memory"]["wine_color"]["raw"]
-    # meal_cheese = data["conversation"]["memory"]["meal_cheese"]["raw"]
+    print(wine_body, wine_sweetness, wine_effervescence)
+    
+    dry_sherry = all([wine_body in ('full'),
+                      wine_sweetness in ('dry', 'medium dry', 'swwet'),
+                      wine_effervescence in ('not sparkling', 'non-sparkling')])
 
-    dry_sherry = all([wine_body in ('medium', 'full'), wine_sweetness == 'dry'])
-
-    champagne = all([wine_body in ('medium', 'light'),
-                     wine_sweetness in ('sweet', 'medium dry'),
-                     wine_effervescence in ('sparkling')])
-
-    prosecco = all([wine_body in ('light'),
-                   wine_sweetness in ('dry'),
+    champagne = any([
+                        all([wine_body in ('full'),
+                                         wine_sweetness in ('dry', 'medium dry', 'sweet'),
+                                         wine_effervescence in ('sparkling')]),
+                        all([wine_body in ('light', 'medium'),
+                                         wine_sweetness in ('sweet'),
+                                         wine_effervescence in ('sparkling')])
+                     ])
+    prosecco = all([wine_body in ('light', 'medium'),
+                   wine_sweetness in ('dry', 'medium dry'),
                    wine_effervescence in ('sparkling')])
 
     sauvignon = all([wine_body in ('medium', 'light'),
                      wine_sweetness in ('sweet', 'medium dry'),
                      wine_effervescence in ('not sparkling', 'non-sparkling')])
 
+    sauterne = all([wine_body in ('light', 'medium'),
+                     wine_sweetness in ('sweet'),
+                     wine_effervescence in ('not sparkling', 'non-sparkling')])
 
-    wines = ['Dry Sherry', 'Champagne', 'Prosecco', 'Sauvignon Blanc']
-    filter = [dry_sherry, champagne, prosecco, sauvignon]
+
+    wines = ['Dry Sherry', 'Champagne', 'Prosecco', 'Sauvignon Blanc', 'Sauterne']
+    filter = [dry_sherry, champagne, prosecco, sauvignon, sauterne]
     print(filter)
-    answer = list(compress(wines, filter))[0]
+    try:
+        answer = list(compress(wines, filter))[0]
+    except:
+        answer = 'ERROR REVIEW LOGIC'
     return respond(answer)
 
 
@@ -60,7 +76,10 @@ def cheese():
 
     wines = ['Rose', 'Chablis', 'Sauvignon Blanc']
     filter = [rose, chablis, sauvignon]
-    answer = list(compress(wines, filter))[0]
+    try:
+        answer = list(compress(wines, filter))[0]
+    except:
+        answer = 'ERROR REVIEW LOGIC'
     return respond(answer)
 
 
@@ -72,14 +91,18 @@ def meat():
 
     meat = data["conversation"]["memory"]["meat"]["raw"]
 
-    burgundy = all([meat in ('raost beef', 'steak', 'game', 'lamb')])
+    burgundy = all([meat in ('roast beef', 'steak', 'game', 'lamb')])
     pinot = all([meat in ('pork', 'veal', 'chicken', 'turkey')])
     chianti = all(['italian' in meat])
     chardonnay = all([meat in ('shellfish', 'fish')])
 
-    wines = ['Red Burgundy', 'Pinot NOir', 'Chiant', 'Chardonnay']
+    wines = ['Red Burgundy', 'Pinot Noir', 'Chianti', 'Chardonnay']
     filter = [burgundy, pinot, chianti, chardonnay]
-    answer = list(compress(wines, filter))[0]
+    # print(filter)
+    try:
+        answer = list(compress(wines, filter))[0]
+    except:
+        answer = 'ERROR REVIEW LOGIC'
     return respond(answer)
 
 
@@ -96,7 +119,10 @@ def dessert():
 
     wines = ['Port Wine', 'Red Burgundy']
     filter = [port, burgundy]
-    answer = list(compress(wines, filter))[0]
+    try:
+        answer = list(compress(wines, filter))[0]
+    except:
+        answer = 'ERROR REVIEW LOGIC'
     return respond(answer)
 
 
@@ -118,5 +144,8 @@ def errors():
   print(json.loads(request.get_data().decode()))
   return jsonify(status=200)
 
+if __name__ == "__main__":
+    app.run(debug=True, host = '0.0.0.0', port = 5000)
+
 # app.run(port=port)
-app.run(debug=True, host = '0.0.0.0', port = port)
+# app.run(debug=True, host = '0.0.0.0', port = port)

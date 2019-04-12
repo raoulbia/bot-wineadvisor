@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
+		<script>this.cai-webchat.clearMessages();</script>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width">
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/vendor/bootstrap-4.3.1-dist/css/bootstrap.min.css') }}" \
@@ -23,9 +24,15 @@
 		token="982c220999b95f7796b724032e0d9a41"
 		id="cai-webchat">
 		</script>
-		<div class="container-fluid">
+		<div class="container">
 				<h1>Web Advisor Chatbot Demo</h1>
-				<p>test</p>
+				<p>
+					The biggest challenge seems to be words being picket up by the wrong intent.<br>
+					Rules must be hard coded. This requires developing a detailed decision flow chart and/or
+					decision table to be used as input to the chatbot conversation flow.<br>
+					UI is intuitive and easy to use but with a large number of hard coded decsion rules it
+					is easier to implement the latter programmatically. 
+				</p>
 				<footer class="footer">
 						<p></p>
 				</footer>
