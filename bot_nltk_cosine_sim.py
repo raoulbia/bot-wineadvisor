@@ -8,6 +8,7 @@ import random
 import string # to process standard python strings
 import urllib.request
 from tqdm import tqdm
+import nlp_utils
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -27,82 +28,26 @@ def is_greeting_test(user_response):
             return random.choice(GREETING_RESPONSES)
 
 
-def nltk_tag_to_wordnet_tag(nltk_tag):
-    if nltk_tag.startswith('J'):
-        return wordnet.ADJ
-    elif nltk_tag.startswith('V'):
-        return wordnet.VERB
-    elif nltk_tag.startswith('N'):
-        return wordnet.NOUN
-    elif nltk_tag.startswith('R'):
-        return wordnet.ADV
-    else:
-        return None
-
-wnl = nltk.WordNetLemmatizer()
-def lemmatize_sentence(sentence):
-
-    # tokenize the sentence and find the POS tag for each token
-    nltk_tagged = nltk.pos_tag(nltk.word_tokenize(sentence))
-
-    # tuple of (token, wordnet_tag)
-    wordnet_tagged = map(lambda x: (x[0], nltk_tag_to_wordnet_tag(x[1])), nltk_tagged)
-
-    lemmatized_sentence = []
-    for word, tag in wordnet_tagged:
-        if tag is None:
-            # if there is no available tag, append the token as is
-            lemmatized_sentence.append(word)
-        else:
-            # else use the tag to lemmatize the token
-            lemmatized_sentence.append(wnl.lemmatize(word, tag))
-    return " ".join(lemmatized_sentence)
-
-
-def removeStopwords(sent):
-    no_stop = [word for word in word_tokenize(sent) if not word in stopwords.words()]
-    return " ".join(no_stop)
-
-
-def removePunctuationSentence(sent):
-    remove_punct_dict = dict((ord(punct), None) for punct in string.punctuation)
-    sent = sent.translate(remove_punct_dict)
-    sent = re.sub(' +', ' ', sent)  # remove duplicate whitespaces
-    return sent
-
-
-def pre_process(sample):
-    text = lemmatize_sentence(sample)
-    text = removeStopwords(sample)
-    text = removePunctuationSentence(sample)
-    return sample
-
-
 # Read Data
 url = 'https://raw.githubusercontent.com/parulnith/Building-a-Simple-Chatbot-in-Python-using-NLTK/master/chatbot.txt'
 response = urllib.request.urlopen(url)
 data = response.read()      # a `bytes` object
-raw = data.decode('latin-1') # a `str`; this step can't be used if data is binary
+raw = data.decode('latin-1')
 
 # TESTING
 # raw = """DENNIS: Listen, strange women lying in ponds and lakes distributing swords
 #  is no basis for a system of government.  Supreme executive power derives from
 #  a mandate from the masses, not from some farcical aquatic ceremony."""
 
-# converts to list of sentences
-samples = nltk.sent_tokenize(raw)
 
-# compile corpus of samples / sentences
-corpus = []
-print('pre-processing corpus...')
-for sample in tqdm(samples):
-  corpus.append(pre_process(sample))
+corpus = nlp_utils.pre_process(raw)
+# print(corpus)
 
 # Generating Response
 def getBotResponse(user_response):
 
     vectorizer = TfidfVectorizer()
-
+    # print(corpus)
     # X : sparse matrix, [n_samples, n_features]
     X = vectorizer.fit_transform(corpus) # applied to tokenized training corpus `chatbot.txt`
 
@@ -143,7 +88,7 @@ while(flag==True):
 
                 # we add the user's input to the corpus BEFORE producing TFIDF matrix X
                 # in this way the user's input becomes effectively the last row in X
-                corpus.append(pre_process(user_response))
+                corpus.append(nlp_utils.pre_process(user_response)[0]) #TODO review nlp_utils to not return a list?
 
                 print(getBotResponse(user_response))
                 corpus.remove(user_response)

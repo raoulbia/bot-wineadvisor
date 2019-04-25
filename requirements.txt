@@ -5,3 +5,4 @@ nltk
 numpy
 sklearn
 tqdm
+-e git+git://github.com/raoulbia/nlp_utils.git#egg=nlp_utils
